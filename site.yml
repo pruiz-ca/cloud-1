@@ -1,0 +1,45 @@
+- name: Prepare cloud-1 server
+  hosts: all
+  gather_facts: no
+
+  vars_files:
+    - vars/all.yml
+    - vars/vault.yml
+
+  pre_tasks:
+    - block:
+        - name: Check if port 4242 is open
+          tags: [always]
+          wait_for:
+            host: "{{ inventory_hostname }}"
+            port: 4242
+            state: started
+            timeout: 5
+          delegate_to: localhost
+          run_once: true
+          become: false
+
+      rescue:
+        - set_fact:
+            ansible_user: root
+            ansible_port: 22
+          tags: [always]
+
+        - meta: clear_host_errors
+          tags: [always]
+
+      always:
+        - setup:
+          tags: [always]
+
+  roles:
+    - {role: common, tags: [common]}
+    - {role: docker, tags: [docker]}
+    - {role: mariadb, tags: [mariadb]}
+    - {role: wordpress, tags: [wordpress]}
+    - {role: nginx, tags: [nginx]}
+    - {role: phpmyadmin, tags: [phpmyadmin]}
+    - {role: inception, tags: [inception]}
+
+  handlers:
+    - import_tasks: handlers/handlers.yml

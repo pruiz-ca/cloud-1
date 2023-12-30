@@ -1,0 +1,7 @@
+---
+- name: Install packages
+  tags: [apt]
+  apt:
+    name: "{{ apt_packages }}"
+    state: latest
+    update_cache: yes

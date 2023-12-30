@@ -1,0 +1,27 @@
+---
+- name: Copy makefile
+  tags: [run]
+  copy:
+    src: Makefile
+    dest: "{{ build_path }}/Makefile"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy docker-compose
+  tags: [run]
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ build_path }}/docker-compose.yml"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Run or restart docker-compose
+  tags: [run, restart]
+  community.docker.docker_compose:
+    project_name: cloud-1
+    project_src: "{{ build_path }}"
+    state: present
+    build: yes
+    restarted: yes

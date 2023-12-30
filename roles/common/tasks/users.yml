@@ -1,0 +1,27 @@
+---
+- name: Make sure users exist
+  tags: [users]
+  user:
+    name: "{{ item.name }}"
+    state: present
+    createhome: yes
+    home: "/home/{{ item.name }}"
+    password: "{{ item.pwd }}"
+  loop:
+    - {
+        name: "{{ vault_main_user }}",
+        pwd: "{{ vault_main_user_password | password_hash('sha512') }}",
+      }
+    - {
+        name: ansible,
+        pwd: "{{ vault_ansible_user_password | password_hash('sha512') }}",
+      }
+
+- name: Copy sudoers file
+  tags: [users]
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers.d/custom
+    owner: root
+    group: root
+    mode: 0440

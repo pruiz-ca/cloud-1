@@ -1,0 +1,49 @@
+---
+- name: Install zsh
+  tags: [zsh]
+  apt:
+    name: zsh
+    state: latest
+
+- name: Install oh-my-zsh
+  tags: [zsh]
+  git:
+    repo: https://github.com/robbyrussell/oh-my-zsh.git
+    dest: "~{{ item }}/.oh-my-zsh"
+    update: no
+  loop:
+    - root
+    - "{{ vault_main_user }}"
+
+- name: Permissions of oh-my-zsh
+  tags: [zsh]
+  file:
+    path: "~{{ item }}/.oh-my-zsh"
+    mode: "go-w"
+    recurse: yes
+    owner: root
+    group: root
+  loop:
+    - root
+    - "{{ vault_main_user }}"
+
+- name: Set zsh as default
+  tags: [zsh]
+  user:
+    name: "{{ item }}"
+    shell: /usr/bin/zsh
+  loop:
+    - root
+    - "{{ vault_main_user }}"
+
+- name: Copy zshrc
+  tags: [zsh]
+  copy:
+    src: .zshrc
+    dest: "~{{ item }}/.zshrc"
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    - root
+    - "{{ vault_main_user }}"

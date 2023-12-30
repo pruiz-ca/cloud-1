@@ -1,0 +1,22 @@
+---
+- name: Copy sshd config
+  tags: [ssh]
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart sshd
+
+- name: Sync SSH key
+  tags: [ssh]
+  ansible.builtin.authorized_key:
+    user: "{{ item }}"
+    key: "{{ vault_ssh_pub_key }}"
+    state: present
+    exclusive: False
+  loop:
+    - root
+    - ansible
+    - "{{ vault_main_user }}"

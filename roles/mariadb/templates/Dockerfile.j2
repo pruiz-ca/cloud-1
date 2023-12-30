@@ -1,0 +1,22 @@
+FROM alpine:{{ alpine_version }}
+
+ARG MYSQL_USER \
+	MYSQL_PASSWORD \
+	MYSQL_ROOT_USER \
+	MYSQL_ROOT_PASSWORD \
+	MYSQL_DATABASE
+
+RUN apk update && apk upgrade && apk add --update --no-cache \
+	mariadb \
+	mariadb-client \
+	openrc
+
+COPY mariadb-server.cnf /etc/my.cnf.d/
+COPY init_db.sh /tmp/init_db.sh
+COPY wordpressdb.sql /tmp/wordpressdb.sql
+
+RUN sh /tmp/init_db.sh
+
+EXPOSE {{ mariadb_port }}
+
+CMD ["mysqld_safe"]

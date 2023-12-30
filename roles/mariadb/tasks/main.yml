@@ -1,0 +1,48 @@
+---
+- name: Create folder
+  tags: [build, mariadb]
+  file:
+    path: "{{ build_path }}/mariadb"
+    state: directory
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy mariadb files
+  tags: [build, mariadb]
+  copy:
+    src: ./
+    dest: "{{ build_path }}/mariadb"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy mariadb templates
+  tags: [build, mariadb]
+  template:
+    src: "./{{ item.src }}"
+    dest: "{{ build_path }}/mariadb/{{ item.dest }}"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+  loop:
+    - { src: Dockerfile.j2, dest: "Dockerfile" }
+    - { src: mariadb-server.cnf.j2, dest: "mariadb-server.cnf" }
+
+- name: Build mariadb docker image
+  tags: [build, mariadb]
+  community.docker.docker_image:
+    name: cloud1_mariadb
+    tag: latest
+    source: build
+    build:
+      path: "{{ build_path }}/mariadb"
+      nocache: true
+      rm: yes
+      args:
+        MYSQL_USER: "{{ mariadb_user }}"
+        MYSQL_PASSWORD: "{{ vault_mariadb_password }}"
+        MYSQL_ROOT_USER: "{{ mariadb_root_user }}"
+        MYSQL_ROOT_PASSWORD: "{{ vault_mariadb_root_password }}"
+        MYSQL_DATABASE: "{{ mariadb_database }}"
+

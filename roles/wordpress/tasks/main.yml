@@ -1,0 +1,45 @@
+---
+- name: Create folder
+  tags: [build, wordpress]
+  file:
+    path: "{{ build_path }}/wordpress"
+    state: directory
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy wordpress files
+  tags: [build, wordpress]
+  copy:
+    src: ./
+    dest: "{{ build_path }}/wordpress"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy wordpress templates
+  tags: [build, wordpress]
+  template:
+    src: "./{{ item.src }}"
+    dest: "{{ build_path }}/wordpress/{{ item.dest }}"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+  loop:
+    - { src: Dockerfile.j2, dest: "Dockerfile" }
+
+- name: Build wordpress docker image
+  tags: [build, wordpress]
+  community.docker.docker_image:
+    name: cloud1_wordpress
+    tag: latest
+    source: build
+    build:
+      path: "{{ build_path }}/wordpress"
+      nocache: true
+      rm: yes
+      args:
+        WORDPRESS_DB_USER: "{{ wordpress_db_user }}"
+        WORDPRESS_DB_PASSWORD: "{{ vault_wordpress_db_password }}"
+        WORDPRESS_DB_HOST: "{{ wordpress_db_host }}"
+        WORDPRESS_DB_NAME: "{{ wordpress_db_name }}"

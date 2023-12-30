@@ -1,0 +1,24 @@
+FROM alpine:{{ alpine_version }}
+
+RUN apk update && apk upgrade && apk add --update --no-cache \
+	nginx \
+	openssl \
+	openssh
+
+RUN mkdir -p run/nginx
+
+COPY nginx.conf /etc/nginx/
+COPY server.conf /etc/nginx/http.d/
+
+{% if nginx_generate_ssl %}
+RUN openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
+	-out /etc/ssl/cert.pem -keyout /etc/ssl/cert.key \
+	-subj "/C=SP/ST=Madrid/L=Madrid/O=42madrid/OU=pruiz-ca/CN=localhost"
+{% else %}
+COPY cert.pem /etc/ssl/cert.pem
+COPY cert.key /etc/ssl/cert.key
+{% endif %}
+
+EXPOSE 443
+
+CMD ["/usr/sbin/nginx", "-g", "daemon off;"]

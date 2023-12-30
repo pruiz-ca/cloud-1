@@ -1,0 +1,82 @@
+version: "3"
+
+services:
+    nginx:
+        build:
+            context: nginx
+        image: cloud1_nginx:latest
+        container_name: nginx
+        hostname: nginx
+        restart: always
+        ports:
+            - "443:443"
+        networks:
+            - cloud1
+        volumes:
+            - vol_wordpress:/var/www/html/wordpress
+            - vol_phpmyadmin:/var/www/html/phpmyadmin
+        depends_on:
+            - wordpress
+
+    wordpress:
+        build:
+            context: wordpress
+            args:
+            - WORDPRESS_DB_USER={{ wordpress_db_user }}
+            - WORDPRESS_DB_PASSWORD={{ vault_wordpress_db_password }}
+            - WORDPRESS_DB_HOST={{ wordpress_db_host }}}
+            - WORDPRESS_DB_NAME={{ wordpress_db_name }}
+        image: cloud1_wordpress:latest
+        container_name: wordpress
+        hostname: wordpress
+        depends_on:
+            - mariadb
+        restart: always
+        networks:
+            - cloud1
+        expose:
+            - {{ wordpress_port }}
+        volumes:
+            - vol_wordpress:/var/www/html/wordpress/
+
+    mariadb:
+        build:
+            context: mariadb
+            args:
+            - MYSQL_USER={{ mariadb_user }}
+            - MYSQL_PASSWORD={{ vault_mariadb_password }}
+            - MYSQL_DATABASE={{ mariadb_database }}
+            - MYSQL_ROOT_PASSWORD={{ vault_mariadb_root_password }}
+        image: cloud1_mariadb:latest
+        container_name: mariadb
+        hostname: mariadb
+        restart: always
+        networks:
+            - cloud1
+        expose:
+            - {{ mariadb_port }}
+        volumes:
+            - vol_mariadb:/var/lib/mysql
+
+    phpmyadmin:
+        build:
+            context: phpmyadmin
+        image: cloud1_phpmyadmin:latest
+        container_name: phpmyadmin
+        hostname: phpmyadmin
+        restart: always
+        networks:
+            - cloud1
+        volumes:
+            - vol_phpmyadmin:/var/www/html/phpmyadmin/
+        depends_on:
+            - mariadb
+
+networks:
+    cloud1:
+        driver: bridge
+
+volumes:
+    vol_mariadb:
+    vol_wordpress:
+    vol_phpmyadmin:

@@ -1,0 +1,30 @@
+---
+apt_packages:
+  - git
+  - vim
+  - zsh
+  - bash
+  - curl
+  - make
+
+build_path: /home/{{ vault_main_user }}/cloud-1
+
+ssh_allow_root: False
+
+alpine_version: 3.18
+
+mariadb_user: "{{ vault_main_user }}"
+mariadb_root_user: root
+mariadb_database: wordpressdb
+mariadb_port: 3306
+
+wordpress_db_user: "{{ mariadb_user }}"
+wordpress_db_host: mariadb:{{ mariadb_port }}
+wordpress_db_name: "{{ mariadb_database }}"
+wordpress_port: 9000
+
+nginx_generate_ssl: False
+
+phpmyadmin_db_host: mariadb
+phpmyadmin_user: "{{ vault_main_user }}"
+phpmyadmin_port: 9000

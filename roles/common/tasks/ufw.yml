@@ -1,0 +1,40 @@
+---
+- name: Install UFW
+  tags: [ufw]
+  apt:
+    name: ufw
+    state: latest
+    update_cache: yes
+
+- name: Reset UFW to default settings
+  tags: [ufw]
+  ufw:
+    state: reset
+
+- name: Block all incoming traffic
+  tags: [ufw]
+  ufw:
+    default: deny
+    direction: incoming
+
+- name: Allow all outgoing traffic
+  tags: [ufw]
+  ufw:
+    default: allow
+    direction: outgoing
+
+- name: Allow ports
+  tags: [ufw]
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - 80
+    - 443
+    - 4242
+
+- name: Restart and enable UFW
+  tags: [ufw]
+  ufw:
+    state: enabled

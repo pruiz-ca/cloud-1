@@ -1,0 +1,32 @@
+---
+- name: Create folder
+  tags: [build, phpmyadmin]
+  file:
+    path: "{{ build_path }}/phpmyadmin"
+    state: directory
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy phpmyadmin templates
+  tags: [build, phpmyadmin]
+  template:
+    src: "./{{ item.src }}"
+    dest: "{{ build_path }}/phpmyadmin/{{ item.dest }}"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+  loop:
+    - { src: Dockerfile.j2, dest: "Dockerfile" }
+    - { src: config.inc.php.j2, dest: "config.inc.php" }
+
+- name: Build phpmyadmin docker image
+  tags: [build, phpmyadmin]
+  community.docker.docker_image:
+    name: cloud1_phpmyadmin
+    tag: latest
+    source: build
+    build:
+      path: "{{ build_path }}/phpmyadmin"
+      nocache: true
+      rm: yes

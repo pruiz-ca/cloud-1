@@ -1,0 +1,41 @@
+---
+- name: Create folder
+  tags: [build, nginx]
+  file:
+    path: "{{ build_path }}/nginx"
+    state: directory
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy nginx files
+  tags: [build, nginx]
+  copy:
+    src: ./
+    dest: "{{ build_path }}/nginx"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+
+- name: Copy nginx templates
+  tags: [build, nginx]
+  template:
+    src: "./{{ item.src }}"
+    dest: "{{ build_path }}/nginx/{{ item.dest }}"
+    owner: "{{ vault_main_user }}"
+    group: "{{ vault_main_user }}"
+    mode: 0755
+  loop:
+    - { src: Dockerfile.j2, dest: "Dockerfile" }
+    - { src: server.conf.j2, dest: "server.conf" }
+
+- name: Build nginx docker image
+  tags: [build, nginx]
+  community.docker.docker_image:
+    name: cloud1_nginx
+    tag: latest
+    source: build
+    build:
+      path: "{{ build_path }}/nginx"
+      nocache: true
+      rm: yes

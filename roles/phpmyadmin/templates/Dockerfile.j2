@@ -1,0 +1,37 @@
+FROM alpine:{{ alpine_version }}
+
+RUN apk update && apk upgrade && apk add --update --no-cache \
+	ca-certificates \
+	curl \
+	tar \
+	xz \
+	openssl \
+	wget \
+	fcgi \
+	lighttpd \
+	mariadb-client \
+	php81 \
+	php81-gd \
+	php81-cgi \
+	php81-fpm \
+	php81-xml \
+	php81-json \
+	php81-intl \
+	php81-zlib \
+	php81-mysqli \
+	php81-session \
+	php81-opcache \
+	php81-mbstring
+
+
+RUN mkdir -p /var/www/html/phpmyadmin && \
+	wget -qO- https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.gz | tar xz --strip-components=1 -C /var/www/html/phpmyadmin/ && \
+	echo "listen = {{ phpmyadmin_port }}" >> /etc/php81/php-fpm.d/www.conf
+
+COPY config.inc.php /var/www/html/phpmyadmin/
+RUN chmod 660 /var/www/html/phpmyadmin/config.inc.php && \
+	chown -R nobody:nogroup /var/www/html/phpmyadmin
+
+EXPOSE {{ phpmyadmin_port }}
+
+CMD ["php-fpm81", "--nodaemonize"]
